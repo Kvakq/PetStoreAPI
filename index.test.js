@@ -15,6 +15,7 @@ describe("GET /pet/{petId} - Retrieve pet information", () => {
 
     console.log(`🐶 Pet's name: ${response.body.name}`);
     console.log(`📌 Pet status: ${response.body.status}`);
+    //Possibly get an error because the API is not stable
   });
 
   test("❌ Negative scenario: Retrieve information for a non-existent pet", async () => {
@@ -171,6 +172,7 @@ describe("PUT /pet - Update pet information", () => {
     console.log(`✅ Pet ${updatedPet.name} successfully updated!`);
   });
 
+  //This script works here, there should be a 404 error, but it still creates that the API is bad.
   it("❌ Negative scenario: Attempt to update a non-existent pet", async () => {
     const nonExistentPet = {
       id: 999999999,
@@ -183,6 +185,7 @@ describe("PUT /pet - Update pet information", () => {
     console.log(`🚨 Error: ${response.body.message || "Pet not found"}`);
   });
 
+  //Here I wrote the wrong data, expecting to get 400 but getting 200
   it("⚠ Edge case: Update a pet with invalid data", async () => {
     const invalidPet = {
       id: petId,
@@ -193,5 +196,49 @@ describe("PUT /pet - Update pet information", () => {
     const response = await request(baseUrl).put("/pet").send(invalidPet);
     expect(response.status).toBe(400);
     console.log(`⚠ Error: ${response.body.message || "Invalid data format"}`);
+  });
+});
+
+// This test suite is for placing an order
+describe("GET /store/inventory", () => {
+  test("Should return 200 OK", async () => {
+    const response = await request(baseUrl).get("/store/inventory");
+
+    console.log(`📦 Inventory response status: ${response.status}`);
+    console.log(
+      `📊 Inventory response body: ${JSON.stringify(response.body, null, 2)}`
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  test("Response should be in JSON format", async () => {
+    const response = await request(baseUrl).get("/store/inventory");
+
+    console.log(`📝 Content-Type: ${response.headers["content-type"]}`);
+
+    expect(response.headers["content-type"]).toMatch(/application\/json/);
+  });
+
+  test("Response should contain keys: available, pending, sold", async () => {
+    const response = await request(baseUrl).get("/store/inventory");
+
+    console.log(`🔑 Response keys: ${Object.keys(response.body).join(", ")}`);
+
+    expect(response.body).toHaveProperty("available");
+    expect(response.body).toHaveProperty("pending");
+    expect(response.body).toHaveProperty("sold");
+  });
+
+  test("Values should be numbers", async () => {
+    const response = await request(baseUrl).get("/store/inventory");
+
+    console.log(
+      `🔢 Values - available: ${response.body.available}, pending: ${response.body.pending}, sold: ${response.body.sold}`
+    );
+
+    expect(typeof response.body.available).toBe("number");
+    expect(typeof response.body.pending).toBe("number");
+    expect(typeof response.body.sold).toBe("number");
   });
 });
